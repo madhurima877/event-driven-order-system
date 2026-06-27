@@ -7,6 +7,7 @@ import (
 
 	"github.com/madhurima877/order-service/internal/config"
 	"github.com/madhurima877/order-service/internal/handler"
+	"github.com/madhurima877/order-service/internal/kafka"
 	"github.com/madhurima877/order-service/internal/repository"
 	"github.com/madhurima877/order-service/internal/service"
 )
@@ -18,10 +19,11 @@ func main() {
 	}
 	defer db.Close()
 	log.Println("Database connected")
+	writer := kafka.NewWriter()
+	defer writer.Close()
 	repo := repository.NewOrderRepository(db)
-	svc := service.NewOrderService(repo)
+	svc := service.NewOrderService(repo, writer)
 	orderHandler := handler.NewOrderHandler(svc)
-	_ = orderHandler
 
 	fmt.Println("Order Service starting")
 	http.HandleFunc("/health", handler.Health)
